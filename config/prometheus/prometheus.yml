@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'parameter-service-backend'
+    scheme: http
+    metrics_path: /actuator/prometheus
+    static_configs:
+      # Para Docker Desktop en Windows/Mac usa host.docker.internal
+      - targets: ['host.docker.internal:8083']

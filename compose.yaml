@@ -1,0 +1,63 @@
+services:
+  parameters-service:
+    build: .
+    container_name: parameters-service
+    ports:
+      - "8081:8081"
+    environment:
+      # ---- Identidad de la app / puerto
+      SPRING_APPLICATION_NAME: "parameters-service"
+      SERVER_PORT: "8081"
+
+      # ---- DB (servicio local 'db')
+      DATABASE_HOST: "db"
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: "ucochallenge"
+      DB_USERNAME: "postgres"
+      DB_PASSWORD: "postgres"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/ucochallenge"
+      SPRING_DATASOURCE_DRIVER: "org.postgresql.Driver"
+
+      # ---- Redis
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+
+      # ---- Key Vault OFF en local
+      AZURE_KEYVAULT_ENABLED: "false"
+      AZURE_KEYVAULT_MANAGED_IDENTITY: "false"
+
+      # ---- Actuator
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,prometheus"
+
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  db:
+    image: postgres:16-alpine
+    container_name: ps-db
+    environment:
+      POSTGRES_DB: "ucochallenge"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ucochallenge"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: ps-redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+
+volumes:
+  pgdata:

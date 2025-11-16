@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: parameters-service
+
+server:
+  port: ${SERVER_PORT:8083}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}   # <— CLAVE para el dropdown
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+logging:
+  pattern:
+    level: "%5p [traceId=%X{traceId:-}, spanId=%X{spanId:-}]"
